@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Twitto - Connect to Community! Share your thoughts and join our social network.">
+    <title>User Login - Twitto</title>
+    <link rel="icon" type="image/webp" sizes="256x256" href="/Barlogo.webp?v=2" th:href="@{/Barlogo.webp(v=2)}">
+    <link rel="shortcut icon" href="/Barlogo.webp?v=2" th:href="@{/Barlogo.webp(v=2)}">
+    <link rel="apple-touch-icon" href="/Barlogo.webp?v=2" th:href="@{/Barlogo.webp(v=2)}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+
+        @keyframes slideInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideBackground {
+            0% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+        }
+
+        @keyframes floatLogo {
+            0% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-10px) rotate(2deg); }
+            100% { transform: translateY(0px) rotate(0deg); }
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background:  url('/bg.webp') center/cover no-repeat ;
+            background-size: calc(100% + 5px) calc(100% + 5px);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+            animation: slideBackground 15s ease infinite;
+        }
+        /* LEFT SIDE (LOGO) */
+
+       .logo-side {
+            position: fixed;   /* 🔥 key */
+            top: 15px;         /* distance from top */
+            left: 20px;        /* distance from left */
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;  /* align text left */
+            color: white;
+            z-index: 10;      /* stay above everything */
+       }
+
+        .logo { width: 300px;
+            margin-bottom: 5px;
+            animation: floatLogo 3s ease-in-out infinite;
+
+            }
+
+        .logo-side h2 {
+            font-size: 42px;
+            font-weight: bold;
+            }
+        .logo-side p {
+            font-size: 16px;
+            opacity: 0.8;
+          }
+
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image:
+                radial-gradient(circle at 20% 50%, rgba(42, 82, 152, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(30, 60, 114, 0.3) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image:
+                url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20" cy="20" r="2" fill="rgba(255,255,255,0.5)"/><circle cx="80" cy="30" r="1.5" fill="rgba(255,255,255,0.4)"/><circle cx="40" cy="70" r="1" fill="rgba(255,255,255,0.3)"/></svg>');
+            background-size: 200px 200px;
+            pointer-events: none;
+            z-index: -1;
+            animation: float 20s ease-in-out infinite;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 420px;
+            padding-Top : 80px;
+        }
+
+        .card {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s ease;
+            animation: slideInUp 0.8s ease;
+            border: 1px solid rgba(42, 82, 152, 0.1);
+        }
+
+        .card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 30px 70px rgba(30, 60, 114, 0.2);
+        }
+
+        .card-header {
+            text-align: center;
+            margin-bottom: 35px;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 25px;
+        }
+
+        .card h1 {
+            color: #1e3c72;
+            font-size: 32px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .card h1 i {
+            font-size: 36px;
+        }
+
+        .card p {
+            color: #999;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 10px;
+            color: #333;
+            font-weight: 600;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-wrapper i {
+            position: absolute;
+            left: 15px;
+            color: #1e3c72;
+            pointer-events: none;
+            font-size: 16px;
+        }
+
+        input {
+            width: 100%;
+            padding: 14px 15px 14px 45px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 15px;
+            transition: all 0.3s ease;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #2a5298;
+            box-shadow: 0 0 0 4px rgba(42, 82, 152, 0.1);
+        }
+
+        .error-message {
+            background: #fee;
+            color: #c33;
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #c33;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            animation: slideInDown 0.5s ease;
+        }
+
+        .error-message i {
+            font-size: 18px;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            text-decoration: none;
+            position: relative;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.2);
+            transition: left 0.3s ease;
+            z-index: 0;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn-login {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(30, 60, 114, 0.4);
+            animation: slideInUp 0.8s ease 0.2s both;
+            position: relative;
+            z-index: 1;
+        }
+
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(30, 60, 114, 0.6);
+        }
+
+        .btn-login:active {
+            transform: translateY(0);
+        }
+
+        .info-box {
+            background: linear-gradient(135deg, #e8f4f8 0%, #dff0f5 100%);
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 25px;
+            border-left: 4px solid #1e3c72;
+            animation: slideInDown 0.8s ease 0.1s both;
+        }
+
+        .info-box small {
+            color: #666;
+            font-size: 12px;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .info-box strong {
+            color: #1e3c72;
+            font-size: 14px;
+            display: block;
+        }
+       .copyright{
+            position: fixed;
+            bottom: 20px;
+            left: 50%;                  /* move to center */
+            transform: translateX(-50%); /* perfect center */
+            text-align: center;
+            color: white;
+            font-size: 14px;
+        }
+
+        .footer-text {
+            text-align: center;
+            margin-top: 20px;
+            color: black;
+            font-size: 13px;
+        }
+
+        .footer-text i {
+            color: #87ceeb;
+            margin-right: 5px;
+        }
+        .admin-btn {
+            position: fixed;
+            top: 25px;
+            right: 25px;
+
+            background: #28a745;   /* green */
+            color: white;
+
+            padding: 12px 20px;
+            border-radius: 10px;
+
+            font-size: 14px;
+            font-weight: bold;
+            text-decoration: none;
+
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+
+            transition: 0.3s ease;
+        }
+
+            /* Hover effect */
+        .admin-btn:hover {
+            background: #218838;
+            transform: translateY(-2px);
+            }
+        @media (max-width: 600px) {
+            .card {
+                padding: 30px;
+            }
+
+            .card h1 {
+                font-size: 28px;
+            }
+
+            input {
+                padding: 12px 12px 12px 40px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+    <a href="/adminlogin" class="admin-btn">
+        Admin
+    </a>
+    <div class="logo-side">
+        <img th:src="@{/logo.png}" class="logo">
+    </div>
+    <div class="card">
+        <div class="card-header">
+            <h1><i class="fas fa-lock"></i> User Login</h1>
+            <p>Enter your credentials to access the dashboard</p>
+        </div>
+
+        <th:block th:if="${error}">
+            <div class="error-message">
+                <i class="fas fa-exclamation-circle"></i>
+                <span th:text="${error}"></span>
+            </div>
+        </th:block>
+
+        <form action="/loginUser" method="post">
+            <div class="form-group">
+                <label for="username">Username</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-user"></i>
+                    <input type="text" id="username" name="username" placeholder="Enter your username" required autofocus>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" id="password" name="password" placeholder="Enter your password" required>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-login">
+                <i class="fas fa-sign-in-alt"></i> Login
+            </button>
+        </form>
+
+        <div style="text-align:center; margin-top:15px;">
+            <p style="font-size:14px;">
+                New user?
+                <a href="/signup" style="color:#2a5298; font-weight:bold;">
+                    Create Account
+                </a>
+            </p>
+        </div>
+
+        <div class="info-box">
+            <small><i class="fas fa-info-circle"></i> End-to-End encrypted </small>
+            <strong>To our beloved users - Private. Secure. Yours.</strong>
+        </div>
+        <div class="footer-text">
+            <i class="fas fa-shield-alt"></i> Secured Portal
+        </div>
+    </div>
+
+    <div class="copyright" style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+        ©2026 Twitto. All rights reserved.<br>
+        <small style="color: #87CEEB; font-size: 12px; font-weight: 500;">Developed by <a href="https://www.linkedin.com/public-profile/settings?trk=d_flagship3_profile_self_view_public_profile" target="_blank" rel="noopener noreferrer" style="color: #87CEEB; font-weight:bold; text-decoration:none;">Ashbir!</a></small>
+    </div>
+
+</div>
+
+</body>
+</html>
+

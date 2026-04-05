@@ -1,0 +1,1985 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
+    <meta name="theme-color" content="#1e3c72">
+    <meta name="description" content="Twitto - A simple social media feed application">
+    <title>Twitto - Social Media Feed</title>
+    <link rel="icon" type="image/webp" sizes="256x256" href="/Barlogo.webp?v=2" th:href="@{/Barlogo.webp(v=2)}">
+    <link rel="shortcut icon" href="/Barlogo.webp?v=2" th:href="@{/Barlogo.webp(v=2)}">
+    <link rel="apple-touch-icon" href="/Barlogo.webp?v=2" th:href="@{/Barlogo.webp(v=2)}">
+    <style>
+        :root {
+            --bg-primary: #f5f5f5;
+            --bg-secondary: #ffffff;
+            --text-primary: #333;
+            --text-secondary: #666;
+            --border-color: #eee;
+            --header-bg: #1e3c72;
+            --accent-color: #2a5298;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+        }
+
+        body.dark-mode {
+            --bg-primary: #0d0d0d;
+            --bg-secondary: #1a1a1a;
+            --text-primary: #e0e0e0;
+            --text-secondary: #999;
+            --border-color: #333;
+            --header-bg: #0f1419;
+            --accent-color: #4a8eff;
+            --shadow-color: rgba(255, 255, 255, 0.05);
+            background-color: #0d0d0d !important;
+            background-image: none !important;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html {
+            font-size: 16px;
+            -webkit-text-size-adjust: 100%;
+        }
+
+        body {
+            position: relative;
+            background: #0b1220;
+            min-height: 100vh;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            transition: all 0.3s ease;
+        }
+
+        #particles-js {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: auto;
+        }
+
+        header,
+        .welcome-card,
+        .container,
+        .dark-mode-toggle {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Twitto Text Animation */
+        @keyframes gradientShift {
+            0% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        @keyframes smoothFloat {
+            0%, 100% {
+                transform: translateY(0px);
+            }
+            50% {
+                transform: translateY(-8px);
+            }
+        }
+
+        /* Background Animation - Very Slow Zoom Out Then In */
+        @keyframes slowBreathing {
+            0% {
+                transform: scale(1.0);
+            }
+            50% {
+                transform: scale(0.95);
+            }
+            100% {
+                transform: scale(1.0);
+            }
+        }
+
+        /* Header */
+        header {
+            background-color: rgba(255, 255, 255, 0.15);
+            color: white;
+            padding: 10px 20px;
+            box-shadow: 0 2px 5px var(--shadow-color);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        body.dark-mode header {
+            background: rgba(15, 20, 25, 0.85);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        header .inner {
+            max-width: 100%;
+            margin: 0;
+            margin-left: 30px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            justify-content: space-between;
+        }
+
+        header .logo-branding {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        header .logo-img {
+            height: 60px;
+            width: auto;
+            object-fit: contain;
+            flex-shrink: 0;
+        }
+
+        header .branding {
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+        }
+
+        header h1 {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 0;
+            background: linear-gradient(90deg, #FFFFFF, #87CEEB , #1E90FF, #FFFFFF , #8B00FF,#FF8C00, #FF0000, #FFFF00, #FFFFFF, #FF8C00);
+            background-size: 300% 300%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: gradientShift 6s ease infinite, smoothFloat 3s ease-in-out infinite;
+            text-shadow: none;
+        }
+
+        /* Logout Button */
+        .logout-btn {
+            padding: 4px 12px;
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 11px;
+            min-height: 30px;
+            transition: all 0.3s ease;
+            touch-action: manipulation;
+            user-select: none;
+            -webkit-user-select: none;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-right: 10px;
+            flex-shrink: 0;
+        }
+
+        .logout-btn:hover {
+            background: linear-gradient(135deg, #c0392b, #a93226);
+            transform: translateY(-1px);
+        }
+
+        .logout-btn:active {
+            transform: translateY(0);
+        }
+
+
+        header .tagline {
+            font-size: 12px;
+            opacity: 0;
+            display: none;
+        }
+
+        /* Main Container */
+        .container {
+            max-width: 1100px;
+            margin: 20px auto;
+            display: grid;
+            grid-template-columns: 1fr 250px;
+            gap: 20px;
+            padding: 0 20px;
+        }
+
+        main {
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            box-shadow: 0 2px 8px var(--shadow-color);
+            overflow: hidden;
+            transition: all 0.3s;
+        }
+
+        aside {
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            box-shadow: 0 2px 8px var(--shadow-color);
+            padding: 15px;
+            height: fit-content;
+            transition: all 0.3s;
+        }
+
+        /* Compose Section */
+        .compose {
+            padding: 15px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            gap: 10px;
+            transition: all 0.3s;
+        }
+
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #2a5298, #4a8eff);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            flex-shrink: 0;
+            color: white;
+            font-weight: bold;
+        }
+
+        .compose-box {
+            flex: 1;
+        }
+
+        .compose textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+            resize: vertical;
+            min-height: 80px;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            transition: all 0.3s;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        .compose textarea:focus {
+            border-color: var(--accent-color);
+            outline: none;
+            background-color: var(--bg-secondary);
+        }
+
+        .compose-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 10px;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .btn-post {
+            padding: 8px 20px;
+            background-color: #2a5298;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+            min-height: 44px;
+            touch-action: manipulation;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .btn-post:hover:not(:disabled) {
+            background-color: #1e3c72;
+        }
+
+        .btn-post:active:not(:disabled) {
+            transform: scale(0.98);
+        }
+
+        .btn-post:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Post */
+        .post {
+            padding: 15px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            gap: 10px;
+            transition: background-color 0.2s;
+        }
+
+        .post:hover {
+            background-color: var(--bg-primary);
+        }
+
+        .post-body {
+            flex: 1;
+        }
+
+        .post-meta {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 5px;
+        }
+
+        .post-meta .name {
+            font-weight: bold;
+            color: var(--text-primary);
+        }
+
+        .post-content {
+            font-size: 14px;
+            margin-bottom: 10px;
+            color: var(--text-primary);
+            word-break: break-word;
+        }
+
+        /* Reactions */
+        .reactions {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+            font-size: 12px;
+        }
+
+        .react-btn {
+            background: none;
+            border: 1px solid var(--border-color);
+            padding: 5px 10px;
+            border-radius: 20px;
+            cursor: pointer;
+            color: var(--text-secondary);
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+
+        .react-btn:hover {
+            background-color: var(--bg-primary);
+            border-color: var(--accent-color);
+        }
+
+        .react-btn.active {
+            background-color: var(--accent-color);
+            color: white;
+            border-color: var(--accent-color);
+        }
+
+        /* Replies */
+        .replies-section {
+            margin-top: 10px;
+            padding-left: 20px;
+            border-left: 2px solid var(--border-color);
+        }
+
+        .reply {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 10px;
+            font-size: 12px;
+        }
+
+        .reply .avatar {
+            width: 28px;
+            height: 28px;
+            font-size: 14px;
+        }
+
+        .reply-meta {
+            color: var(--text-secondary);
+            margin-bottom: 3px;
+        }
+
+        .reply-text {
+            color: var(--text-primary);
+            font-size: 12px;
+        }
+
+        .reply-input {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .reply-input input {
+            flex: 1;
+            padding: 6px 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 12px;
+            font-family: Arial, sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            transition: all 0.3s;
+            -webkit-appearance: none;
+            appearance: none;
+            min-height: 44px;
+        }
+
+        .reply-input input:focus {
+            border-color: var(--accent-color);
+            outline: none;
+        }
+
+        .reply-input button {
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 6px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s;
+            min-height: 44px;
+            touch-action: manipulation;
+        }
+
+        .reply-input button:hover {
+            opacity: 0.85;
+        }
+
+        .reply-input button:active {
+            transform: scale(0.95);
+        }
+
+        /* Right Panel */
+        aside h3 {
+            font-size: 13px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+
+        body.dark-mode aside h3 {
+            color: #ffffff;
+        }
+
+        body.dark-mode aside p {
+            color: #ffffff !important;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .stat-item {
+            padding: 10px;
+            background-color: var(--bg-primary);
+            border-radius: 4px;
+            transition: all 0.3s;
+        }
+
+        body.dark-mode .stat-item {
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+
+        .stat-number {
+            font-size: 18px;
+            font-weight: bold;
+            color: var(--accent-color);
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: var(--text-secondary);
+            margin-top: 3px;
+        }
+
+        .members-list {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .member {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 12px;
+        }
+
+        .member .avatar {
+            width: 28px;
+            height: 28px;
+            font-size: 14px;
+        }
+
+        .member-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .member-name {
+            font-weight: bold;
+            color: var(--text-primary);
+        }
+
+        .member-handle {
+            color: var(--text-secondary);
+            font-size: 10px;
+        }
+
+        .online-badge {
+            width: 10px;
+            height: 10px;
+            background-color: #4CAF50;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 5px;
+        }
+
+        .offline-badge {
+            width: 10px;
+            height: 10px;
+            background-color: #ccc;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 5px;
+        }
+
+        /* Chatbot Styles */
+        .chatbot-card {
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            box-shadow: 0 2px 8px var(--shadow-color);
+            padding: 0;
+            height: fit-content;
+            display: flex !important;
+            flex-direction: column;
+            transition: all 0.3s;
+            max-height: min(70vh, 360px);
+            max-width: min(260px, calc(100vw - 24px));
+            width: 260px;
+            position: fixed;
+            bottom: max(12px, env(safe-area-inset-bottom));
+            left: max(12px, env(safe-area-inset-left));
+            z-index: 1000;
+            opacity: 1;
+            visibility: visible;
+            overflow: hidden;
+        }
+
+        .chatbot-card.visible {
+            display: flex !important;
+        }
+
+        .chatbot-header {
+            padding: 12px 15px;
+            background: linear-gradient(135deg, #2a5298, #4a8eff);
+            color: white;
+            border-radius: 8px 8px 0 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .chatbot-logo {
+            height: 28px;
+            width: auto;
+            object-fit: contain;
+        }
+
+        .chatbot-header h3 {
+            margin: 0;
+            font-size: 13px;
+            font-weight: bold;
+            flex: 1;
+        }
+
+        .chatbot-header .close-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            cursor: pointer;
+            border-radius: 4px;
+            padding: 4px 8px;
+            font-size: 12px;
+            transition: all 0.3s;
+        }
+
+        .chatbot-header .close-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .chatbot-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            min-height: 150px;
+            max-height: 250px;
+        }
+
+        .chatbot-messages::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .chatbot-messages::-webkit-scrollbar-track {
+            background: var(--bg-primary);
+        }
+
+        .chatbot-messages::-webkit-scrollbar-thumb {
+            background: var(--accent-color);
+            border-radius: 3px;
+        }
+
+        .chat-message {
+            display: flex;
+            gap: 8px;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .chat-message.user {
+            justify-content: flex-end;
+        }
+
+        .chat-bubble {
+            max-width: 85%;
+            padding: 10px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            line-height: 1.4;
+            word-wrap: break-word;
+        }
+
+        .chat-message.bot .chat-bubble {
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .chat-message.user .chat-bubble {
+            background: linear-gradient(135deg, #2a5298, #4a8eff);
+            color: white;
+        }
+
+        .chat-timestamp {
+            font-size: 10px;
+            color: var(--text-secondary);
+            padding: 0 5px;
+            align-self: flex-end;
+        }
+
+        .chatbot-input {
+            padding: 10px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            gap: 6px;
+            background: var(--bg-secondary);
+            border-radius: 0 0 8px 8px;
+        }
+
+        .chatbot-input input {
+            flex: 1;
+            padding: 6px 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            font-size: 11px;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            transition: all 0.3s;
+            -webkit-appearance: none;
+            appearance: none;
+            font-family: Arial, sans-serif;
+        }
+
+        .chatbot-input input:focus {
+            border-color: var(--accent-color);
+            outline: none;
+            background-color: var(--bg-secondary);
+        }
+
+        .chatbot-input button {
+            padding: 6px 10px;
+            background: linear-gradient(135deg, #2a5298, #4a8eff);
+            color: white;
+            border: none;
+            border-radius: 16px;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: bold;
+            transition: all 0.3s;
+            min-width: 36px;
+            min-height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            touch-action: manipulation;
+        }
+
+        .chatbot-input button:hover {
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+        }
+
+        .chatbot-input button:active {
+            transform: scale(0.95);
+        }
+
+        .chat-loading {
+            display: flex;
+            gap: 4px;
+            padding: 10px 12px;
+            background-color: var(--bg-primary);
+            border-radius: 8px;
+            width: fit-content;
+        }
+
+        .chat-loading span {
+            width: 6px;
+            height: 6px;
+            background-color: var(--accent-color);
+            border-radius: 50%;
+            animation: bounce 1.4s infinite;
+        }
+
+        .chat-loading span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .chat-loading span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes bounce {
+            0%, 80%, 100% {
+                opacity: 0.3;
+                transform: translateY(0);
+            }
+            40% {
+                opacity: 1;
+                transform: translateY(-8px);
+            }
+        }
+
+        /* Empty State */
+        .empty-state {
+            padding: 40px 20px;
+            text-align: center;
+            color: #999;
+        }
+
+        .empty-state p {
+            margin: 10px 0;
+        }
+
+        /* Responsive Design - Mobile First */
+
+        /* Small devices (phones - 320px to 480px) */
+        @media (max-width: 480px) {
+            .container {
+                grid-template-columns: 1fr;
+                margin: 10px auto;
+                gap: 15px;
+                padding: 0 10px;
+            }
+
+            .chatbot-card {
+                max-height: 62vh;
+                width: calc(100vw - 20px);
+                max-width: calc(100vw - 20px);
+                position: fixed;
+                bottom: max(10px, env(safe-area-inset-bottom));
+                left: max(10px, env(safe-area-inset-left));
+                right: 10px;
+                z-index: 1000;
+                display: flex !important;
+                opacity: 1;
+                visibility: visible;
+            }
+
+            .chatbot-card.visible {
+                display: flex !important;
+            }
+
+            .chatbot-messages {
+                max-height: 40vh;
+                min-height: 110px;
+            }
+
+            header .inner {
+                flex-wrap: wrap;
+                gap: 5px;
+            }
+
+            header h1 {
+                font-size: 20px;
+            }
+
+            header .tagline {
+                font-size: 10px;
+            }
+
+            main {
+                border-radius: 4px;
+                box-shadow: 0 1px 4px var(--shadow-color);
+            }
+
+            aside {
+                padding: 10px;
+                grid-column: 1;
+            }
+
+            .compose {
+                padding: 10px;
+                gap: 8px;
+            }
+
+            .compose textarea {
+                min-height: 60px;
+                font-size: 13px;
+                padding: 8px;
+            }
+
+            .avatar {
+                width: 32px;
+                height: 32px;
+                font-size: 16px;
+            }
+
+            .compose-footer {
+                flex-wrap: wrap;
+                gap: 5px;
+                font-size: 11px;
+            }
+
+            .btn-post {
+                padding: 6px 15px;
+                font-size: 12px;
+            }
+
+            .post {
+                padding: 10px;
+                gap: 8px;
+            }
+
+            .post-meta {
+                font-size: 11px;
+            }
+
+            .post-content {
+                font-size: 13px;
+            }
+
+            .reactions {
+                gap: 5px;
+                font-size: 11px;
+            }
+
+            .react-btn {
+                padding: 4px 8px;
+                font-size: 11px;
+            }
+
+            .reply {
+                gap: 6px;
+            }
+
+            .reply .avatar {
+                width: 24px;
+                height: 24px;
+                font-size: 12px;
+            }
+
+            aside h3 {
+                font-size: 12px;
+                margin-bottom: 8px;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 8px;
+            }
+
+            .stat-item {
+                padding: 8px;
+            }
+
+            .stat-number {
+                font-size: 16px;
+            }
+
+            .stat-label {
+                font-size: 10px;
+            }
+
+            .member {
+                padding: 6px 0;
+                gap: 6px;
+            }
+
+            .member .avatar {
+                width: 24px;
+                height: 24px;
+                font-size: 12px;
+            }
+
+            .member-name {
+                font-size: 11px;
+            }
+
+            .member-handle {
+                font-size: 9px;
+            }
+
+            .dark-mode-toggle {
+                width: 45px;
+                height: 45px;
+                bottom: 15px;
+                right: 15px;
+                font-size: 20px;
+            }
+
+            .reply-input input {
+                padding: 5px 8px;
+                font-size: 11px;
+            }
+
+            .reply-input button {
+                padding: 5px 8px;
+                font-size: 11px;
+            }
+
+            .empty-state {
+                padding: 20px 10px;
+            }
+
+            .empty-state p {
+                font-size: 13px;
+            }
+        }
+
+        /* Tablets (480px to 768px) */
+        @media (max-width: 768px) and (min-width: 481px) {
+            .container {
+                grid-template-columns: 1fr;
+                margin: 15px auto;
+                gap: 15px;
+                padding: 0 15px;
+            }
+
+            .chatbot-card {
+                display: flex;
+                width: min(300px, calc(100vw - 24px));
+                max-width: min(300px, calc(100vw - 24px));
+                max-height: 65vh;
+                left: max(12px, env(safe-area-inset-left));
+                bottom: max(12px, env(safe-area-inset-bottom));
+            }
+
+            header h1 {
+                font-size: 22px;
+            }
+
+            aside {
+                grid-column: 1;
+                padding: 12px;
+            }
+
+            .compose {
+                padding: 12px;
+            }
+
+            .compose textarea {
+                min-height: 70px;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 10px;
+            }
+
+            .post {
+                padding: 12px;
+            }
+        }
+
+        /* Tablets and small desktops (768px and above) */
+        @media (min-width: 768px) {
+            .container {
+                grid-template-columns: 1fr 250px;
+            }
+
+            .chatbot-card {
+                display: flex;
+            }
+        }
+
+        /* Large desktops (1200px and above) */
+        @media (min-width: 1200px) {
+            .container {
+                grid-template-columns: 1fr 250px;
+            }
+
+            .chatbot-card {
+                display: flex;
+            }
+        }
+
+        /* Very small screens - hide some elements */
+        @media (max-width: 360px) {
+            header .tagline {
+                display: none;
+            }
+
+            .compose-footer {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .btn-post {
+                width: 100%;
+            }
+        }
+
+        .text-muted {
+            color: var(--text-secondary);
+        }
+
+        .time {
+            color: var(--text-secondary);
+            font-size: 12px;
+        }
+
+        /* Dark Mode Toggle Button */
+        .dark-mode-toggle {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #2a5298, #4a8eff);
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s;
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 50px;
+            min-width: 50px;
+            touch-action: manipulation;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .dark-mode-toggle:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+        }
+
+        .dark-mode-toggle:active {
+            transform: scale(0.95);
+        }
+
+        @media (max-width: 480px) {
+            .dark-mode-toggle {
+                width: 45px;
+                height: 45px;
+                bottom: 15px;
+                right: 15px;
+                font-size: 20px;
+            }
+        }
+
+        /* Welcome Card */
+        .welcome-card {
+            max-width: 1000px;
+            margin: 20px auto;
+            padding: 25px 30px;
+            background: linear-gradient(135deg, rgba(255, 20, 147, 0.1), rgba(218, 112, 214, 0.1), rgba(255, 255, 0, 0.1), rgba(0, 255, 0, 0.1));
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            text-align: center;
+            color: white;
+        }
+
+        .welcome-card h2 {
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 12px;
+            background: linear-gradient(90deg, #ff1493, #da70d6, #ffff00, #00ff00, #ff1493);
+            background-size: 300% 300%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: gradientShift 6s ease infinite;
+        }
+
+        .welcome-card p {
+            font-size: 16px;
+            color: rgba(255, 255, 255, 0.85);
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        @media (max-width: 768px) {
+            .welcome-card {
+                margin: 15px auto;
+                padding: 20px;
+            }
+
+            .welcome-card h2 {
+                font-size: 22px;
+            }
+
+            .welcome-card p {
+                font-size: 14px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .welcome-card {
+                margin: 8px auto;
+                padding: 12px 15px;
+            }
+
+            .welcome-card h2 {
+                font-size: 16px;
+                margin-bottom: 8px;
+            }
+
+            .welcome-card p {
+                font-size: 11px;
+            }
+        }
+
+        /* Admin Name Animation */
+        .admin-name {
+            background: linear-gradient(90deg, #FFFFFF, #0099FF, #FFFFFF, #0099FF, #FFFFFF);
+            background-size: 300% 300%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: gradientShift 6s ease infinite;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="particles-js" aria-hidden="true"></div>
+
+
+    <!-- Header -->
+    <header>
+        <div class="inner">
+            <a href="/" style="text-decoration: none; display: inline-flex;">
+                <div class="logo-branding">
+                    <img src="/Barlogo.webp" th:src="@{/Barlogo.webp}" class="logo-img" alt="Twitto Logo">
+                    <div class="branding">
+                        <h1>✦ Twitto</h1>
+                        <span class="tagline">— speak your mind</span>
+                    </div>
+                </div>
+            </a>
+            <a href="/login" style="margin: 0; text-decoration: none;">
+                <button type="button" class="logout-btn" title="Logout">
+                    <span>🚪</span> Logout
+                </button>
+            </a>
+        </div>
+    </header>
+
+    <!-- Welcome Card -->
+    <div class="welcome-card">
+        <h2>✨ Welcome to Twitto</h2>
+        <p>A vibrant community where you can make meaningful connections, share your thoughts freely, and engage with people from around the world. Connect. Express. Inspire.</p>
+    </div>
+
+    <!-- Dark Mode Toggle Button -->
+    <button class="dark-mode-toggle" id="dark-mode-toggle" title="Toggle Dark Mode">🌙</button>
+
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Chatbot Sidebar -->
+         <div class="chatbot-card" id="chatbot-card">
+            <div class="chatbot-header">
+                <img src="/Barlogo.webp" th:src="@{/Barlogo.webp}" class="chatbot-logo" alt="Twitto">
+                <h3>Twitto Assistant</h3>
+                <button class="close-btn" onclick="toggleChatbot()" title="Minimize">−</button>
+            </div>
+            <div class="chatbot-messages" id="chatbot-messages">
+                <div class="chat-message bot">
+                    <div class="chat-bubble">
+                        👋 Hi! I'm your Capital assistant. Ask me country capitals.
+                    </div>
+                </div>
+            </div>
+            <div class="chatbot-input">
+                <input type="text" id="chatbot-input" placeholder="Type a message..." onkeypress="handleChatInput(event)">
+                <button onclick="sendChatMessage()" title="Send message">↗</button>
+            </div>
+        </div>
+
+        <!-- Main Feed -->
+        <main>
+            <!-- Compose Section -->
+            <div class="compose">
+                <div class="avatar" id="user-avatar"></div>
+                <div class="compose-box">
+                    <textarea id="compose-text" placeholder="What's on your mind?"></textarea>
+                    <div class="compose-footer">
+                        <span id="char-count">0/280</span>
+                        <button class="btn-post" id="btn-post" disabled>Post</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Feed -->
+            <div id="feed"></div>
+        </main>
+
+        <!-- Right Sidebar -->
+        <aside>
+            <div>
+                <h3>📊 Stats</h3>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-number" id="post-count">0</div>
+                        <div class="stat-label">Posts</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" id="reaction-count">0</div>
+                        <div class="stat-label">Reactions</div>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <h3>👥 Members (<span th:text="${totalUsers}">0</span>)</h3>
+                <div class="members-list" id="members-list">
+                    <th:block th:if="${users != null and users.size() > 0}">
+                        <div th:each="u : ${users}" class="member">
+                            <div class="avatar" th:text="${#strings.toUpperCase(#strings.substring(u.username, 0, 1))}"></div>
+                            <div class="member-info">
+                                <div class="member-name">
+                                    <span th:if="${u.isOnline}" class="online-badge" title="Online"></span>
+                                    <span th:unless="${u.isOnline}" class="offline-badge" title="Offline"></span>
+                                    <span th:class="${u.role == 'ADMIN' ? 'admin-name' : ''}" th:text="${u.username}"></span>
+                                </div>
+                                <div class="member-handle" th:text="${u.role}"></div>
+                            </div>
+                        </div>
+                    </th:block>
+                    <th:block th:if="${users == null or users.size() == 0}">
+                        <p style="color: #999; text-align: center; padding: 20px 0;">No members yet</p>
+                    </th:block>
+                </div>
+            </div>
+
+            <div style="margin-top: 20px;">
+                <h3>ℹ️ About</h3>
+                <p style="font-size: 12px; color: #666; line-height: 1.5;">Share your thoughts freely. React and reply to posts in the community. Keep it simple, keep it real.</p>
+            </div>
+
+            <div style="margin-top: 30px; text-align: center; font-size: 12px; color: var(--text-secondary); font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+                ©2026 Twitto. All rights reserved.<br>
+                <span style="color: #87CEEB; font-weight: 500;">Developed by <a href="https://www.linkedin.com/public-profile/settings?trk=d_flagship3_profile_self_view_public_profile" target="_blank" rel="noopener noreferrer" style="color: #87CEEB; font-weight:bold; text-decoration:none;">Ashbir!</a></span>
+            </div>
+        </aside>
+    </div>
+
+    <script src="/js/particles.min.js" th:src="@{/js/particles.min.js}"></script>
+    <script th:inline="javascript">
+
+        // Get user from session with safe Thymeleaf fallbacks
+        const sessionUser = {
+            id: /*[[${user != null ? user.id : 0}]]*/ 0,
+            username: /*[[${user != null ? user.username : 'Guest'}]]*/ 'Guest',
+            role: /*[[${user != null ? user.role : 'USER'}]]*/ 'USER'
+        };
+
+        let posts = [];
+        let expandedPosts = new Set(); // Track which posts have expanded replies
+
+        function getInitialPosts() {
+            // Convert Thymeleaf posts DTO to JavaScript format
+            const serverPosts = /*[[${posts}]]*/ [];
+            if (Array.isArray(serverPosts)) {
+                return serverPosts.map(p => ({
+                    id: p.id,
+                    userId: p.userId,
+                    author: p.username || 'Unknown',
+                    avatar: (p.username || '?').charAt(0).toUpperCase(),
+                    content: p.content || '',
+                    timestamp: p.timestamp || Date.now(),
+                    heartCount: p.heartCount || 0,
+                    laughCount: p.laughCount || 0,
+                    isAdmin: p.role === 'ADMIN',
+                    userReactions: [],
+                    replies: []
+                }));
+            }
+            return [];
+        }
+
+        posts = getInitialPosts();
+
+        // Format time
+        function formatTime(timestamp) {
+            const now = Date.now();
+            const diff = now - timestamp;
+            const minutes = Math.floor(diff / 60000);
+            const hours = Math.floor(minutes / 60);
+            const days = Math.floor(hours / 24);
+
+            if (minutes < 1) return "just now";
+            if (minutes < 60) return minutes + "m ago";
+            if (hours < 24) return hours + "h ago";
+            return days + "d ago";
+        }
+
+        // UI Setup
+        const userAvatar = document.getElementById("user-avatar");
+        if (userAvatar) {
+            userAvatar.textContent = (sessionUser.username || '?').charAt(0).toUpperCase();
+        }
+
+        // Compose handler
+        const textarea = document.getElementById("compose-text");
+        const charCount = document.getElementById("char-count");
+        const postBtn = document.getElementById("btn-post");
+
+        if (textarea && charCount && postBtn) {
+            textarea.addEventListener("input", function() {
+                const len = this.value.length;
+                charCount.textContent = len + "/280";
+                postBtn.disabled = len === 0 || len > 280;
+            });
+
+            postBtn.addEventListener("click", function() {
+                const content = textarea.value.trim();
+                if (!content) return;
+
+                // Send post to server
+                fetch('/api/posts', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: 'content=' + encodeURIComponent(content)
+                })
+                .then(res => {
+                    if (!res.ok) {
+                        throw new Error(`HTTP error! status: ${res.status}`);
+                    }
+                    return res.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        const post = data.post || {};
+                        const newPost = {
+                            id: post.id,
+                            userId: post.userId || sessionUser.id,
+                            author: post.username || sessionUser.username,
+                            avatar: post.avatar || (sessionUser.username || '?').charAt(0).toUpperCase(),
+                            content: post.content || content,
+                            timestamp: post.timestamp || Date.now(),
+                            heartCount: post.heartCount || 0,
+                            laughCount: post.laughCount || 0,
+                            isAdmin: (post.role || sessionUser.role) === 'ADMIN',
+                            userReactions: [],
+                            replies: []
+                        };
+                        posts.unshift(newPost);
+                        textarea.value = "";
+                        charCount.textContent = "0/280";
+                        postBtn.disabled = true;
+                        render();
+                    } else {
+                        alert(data.message || 'Error creating post');
+                    }
+                })
+                .catch(err => {
+                    console.error('Error:', err);
+                    alert('Error creating post: ' + err.message);
+                });
+            });
+        }
+
+        // Render
+        function render() {
+            // Render feed
+            const feed = document.getElementById("feed");
+            if (posts.length === 0) {
+                feed.innerHTML = '<div class="empty-state"><p style="font-size: 16px; font-weight: bold;">No thoughts yet.</p><p>Be the first to share something.</p></div>';
+            } else {
+                feed.innerHTML = posts.map(post => renderPost(post)).join("");
+            }
+
+            // Restore expanded states after render
+            expandedPosts.forEach(postId => {
+                setTimeout(() => {
+                    const section = document.querySelector(`[data-post-id="${postId}"]`);
+                    if (section) {
+                        section.style.display = "block";
+                        const input = document.getElementById(`reply-input-${postId}`);
+                        if (input) input.focus();
+                    }
+                }, 10);
+            });
+
+            // Stats
+            const totalReactions = posts.reduce((sum, p) => sum + p.heartCount + p.laughCount, 0);
+            document.getElementById("post-count").textContent = posts.length;
+            document.getElementById("reaction-count").textContent = totalReactions;
+        }
+
+        function renderPost(post) {
+            const isOwnPost = post.userId === sessionUser.id || sessionUser.role === 'ADMIN';
+
+            return `
+                <div class="post">
+                    <div class="avatar">${post.avatar}</div>
+                    <div class="post-body">
+                        <div class="post-meta">
+                            <span class="name ${post.isAdmin ? 'admin-name' : ''}">${post.author}</span>
+                            <span class="text-muted">@${post.author.toLowerCase()}</span>
+                            <span class="time">${formatTime(post.timestamp)}</span>
+                            ${isOwnPost ? `<button onclick="deletePost(${post.id})" style="float:right; background:none; border:none; color:#999; cursor:pointer; font-size:12px;">🗑️</button>` : ''}
+                        </div>
+                        <div class="post-content">${escapeHtml(post.content)}</div>
+                        <div class="reactions">
+                            <button class="react-btn ${post.userReactions.includes('heart') ? 'active' : ''}" onclick="toggleReaction(${post.id}, 'heart')">❤️ ${post.heartCount > 0 ? post.heartCount : ''}</button>
+                            <button class="react-btn ${post.userReactions.includes('laugh') ? 'active' : ''}" onclick="toggleReaction(${post.id}, 'laugh')">😂 ${post.laughCount > 0 ? post.laughCount : ''}</button>
+                            <button class="react-btn" onclick="toggleRepliesView(${post.id})">💬 ${post.replies.length > 0 ? post.replies.length : ''}</button>
+                        </div>
+                        <div class="replies-section" data-post-id="${post.id}" style="display: none;">
+                            ${post.replies.length > 0 ? post.replies.map(reply => {
+                                const isAdmin = reply.role === 'ADMIN';
+                                return `
+                                <div class="reply">
+                                    <div class="avatar">${reply.avatar}</div>
+                                    <div style="flex: 1;">
+                                        <div class="reply-meta"><strong class="${isAdmin ? 'admin-name' : ''}">${reply.author}</strong> <span class="text-muted">@${reply.author.toLowerCase()}</span> <span class="time">${formatTime(reply.timestamp)}</span>
+                                        ${reply.author === sessionUser.username || sessionUser.role === 'ADMIN' ? `<button onclick="deleteComment(${reply.id}, ${post.id})" style="float:right; background:none; border:none; color:#999; cursor:pointer; font-size:12px;">🗑️</button>` : ''}
+                                        </div>
+                                        <div class="reply-text" style="${isAdmin ? 'font-weight: bold;' : ''}">${escapeHtml(reply.content)}</div>
+                                    </div>
+                                </div>
+                            `;
+                            }).join("") : ''}
+                            <div class="reply-input">
+                                <input type="text" placeholder="Write a reply..." id="reply-input-${post.id}" maxlength="200">
+                                <button onclick="addReply(${post.id})">Send</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function toggleReaction(postId, type) {
+            const post = posts.find(p => p.id === postId);
+            if (!post) return;
+
+            const idx = post.userReactions.indexOf(type);
+            if (idx > -1) {
+                post.userReactions.splice(idx, 1);
+                if (type === 'heart') post.heartCount--;
+                else post.laughCount--;
+            } else {
+                post.userReactions.push(type);
+                if (type === 'heart') post.heartCount++;
+                else post.laughCount++;
+            }
+            render();
+        }
+
+        function toggleRepliesView(postId) {
+            const section = document.querySelector(`[data-post-id="${postId}"]`);
+            if (!section) return;
+
+            const isHidden = section.style.display === "none";
+
+            if (isHidden) {
+                // Track this post as expanded
+                expandedPosts.add(postId);
+
+                // Show section first, then load comments
+                section.style.display = "block";
+
+                // Load comments from database
+                loadCommentsForPost(postId)
+                    .then(() => {
+                        // Re-ensure section is visible after render (render might have hidden it)
+                        const updatedSection = document.querySelector(`[data-post-id="${postId}"]`);
+                        if (updatedSection) {
+                            updatedSection.style.display = "block";
+                            setTimeout(() => {
+                                const input = document.getElementById(`reply-input-${postId}`);
+                                if (input) input.focus();
+                            }, 50);
+                        }
+                    })
+                    .catch(err => {
+                        console.error('Error loading comments:', err);
+                        // Section stays visible even if loading fails
+                        const updatedSection = document.querySelector(`[data-post-id="${postId}"]`);
+                        if (updatedSection) {
+                            updatedSection.style.display = "block";
+                        }
+                    });
+            } else {
+                // Untrack this post as expanded
+                expandedPosts.delete(postId);
+                section.style.display = "none";
+            }
+        }
+
+        // Load comments from database
+        function loadCommentsForPost(postId) {
+            return fetch(`/api/comments/post/${postId}`)
+                .then(res => {
+                    if (!res.ok) {
+                        console.warn(`API returned status ${res.status} when fetching comments for post ${postId}`);
+                        return [];
+                    }
+                    return res.json();
+                })
+                .then(comments => {
+                    // Handle case where comments might be null
+                    if (!Array.isArray(comments)) {
+                        console.warn('Comments response is not an array:', comments);
+                        return [];
+                    }
+
+                    const post = posts.find(p => p.id === postId);
+                    if (post) {
+                        post.replies = comments.map(c => ({
+                            id: c.id,
+                            author: c.author,
+                            avatar: c.avatar,
+                            role: c.role,
+                            content: c.content,
+                            timestamp: c.timestamp
+                        }));
+                        render();
+
+                        // After render, ensure the section is still visible
+                        const section = document.querySelector(`[data-post-id="${postId}"]`);
+                        if (section) {
+                            section.style.display = "block";
+                        }
+                    }
+                    return comments;
+                })
+                .catch(err => {
+                    console.error('Error loading comments for post ' + postId + ':', err);
+                    // Don't throw - let the section stay visible
+                    // Re-show section after potential render
+                    const section = document.querySelector(`[data-post-id="${postId}"]`);
+                    if (section) {
+                        section.style.display = "block";
+                    }
+                    return [];
+                });
+        }
+
+        function addReply(postId) {
+            const input = document.getElementById(`reply-input-${postId}`);
+            if (!input) return;
+
+            const content = input.value.trim();
+            if (!content) return;
+
+            // Send reply to server via API with JSON
+            fetch('/api/comments', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    postId: postId,
+                    content: content
+                })
+            })
+            .then(res => {
+                if (!res.ok) {
+                    throw new Error(`HTTP error! status: ${res.status}`);
+                }
+                return res.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    const comment = data.comment;
+                    const post = posts.find(p => p.id === postId);
+                    if (post) {
+                        post.replies.push({
+                            id: comment.id,
+                            author: comment.author,
+                            avatar: String(comment.avatar),
+                            role: comment.role,
+                            content: comment.content,
+                            timestamp: comment.timestamp
+                        });
+                    }
+                    input.value = "";
+
+                    // Keep replies section expanded after adding a reply
+                    expandedPosts.add(postId);
+                    render();
+
+                    // Ensure section stays visible
+                    const section = document.querySelector(`[data-post-id="${postId}"]`);
+                    if (section) {
+                        section.style.display = "block";
+                    }
+                } else {
+                    alert(data.message || 'Error adding reply');
+                }
+            })
+            .catch(err => {
+                console.error('Error:', err);
+                alert('Error adding reply: ' + err.message);
+            });
+        }
+
+        function deletePost(postId) {
+            if (!confirm('Are you sure you want to delete this post?')) return;
+
+            fetch(`/api/posts/${postId}`, {
+                method: 'DELETE'
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    posts = posts.filter(p => p.id !== postId);
+                    expandedPosts.delete(postId);
+                    render();
+                } else {
+                    alert(data.message || 'Error deleting post');
+                }
+            })
+            .catch(err => {
+                console.error('Error:', err);
+                alert('Error deleting post: ' + err.message);
+            });
+        }
+
+        function deleteComment(commentId, postId) {
+            if (!confirm('Are you sure you want to delete this comment?')) return;
+
+            fetch(`/api/comments/${commentId}`, {
+                method: 'DELETE'
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    const post = posts.find(p => p.id === postId);
+                    if (post) {
+                        post.replies = post.replies.filter(r => r.id !== commentId);
+                        // Keep expanded state when deleting comment
+                        expandedPosts.add(postId);
+                        render();
+                        // Ensure section stays visible
+                        const section = document.querySelector(`[data-post-id="${postId}"]`);
+                        if (section) section.style.display = "block";
+                    }
+                } else {
+                    alert(data.message || 'Error deleting comment');
+                }
+            })
+            .catch(err => {
+                console.error('Error:', err);
+                alert('Error deleting comment: ' + err.message);
+            });
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement("div");
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Dark Mode Toggle
+        const darkModeToggle = document.getElementById("dark-mode-toggle");
+        const isDarkMode = localStorage.getItem("darkMode") === "true";
+
+        // Particles background
+        if (typeof particlesJS === "function") {
+            particlesJS("particles-js", {
+                particles: {
+                    number: { value: 70, density: { enable: true, value_area: 900 } },
+                    color: { value: "#ffffff" },
+                    shape: { type: "circle" },
+                    opacity: { value: 0.5, random: true },
+                    size: { value: 2.4, random: true },
+                    line_linked: { enable: true, distance: 145, color: "#ffffff", opacity: 0.55, width: 1.25 },
+                    move: { enable: true, speed: 1.1, direction: "none", random: false, straight: false, out_mode: "out", bounce: false }
+                },
+                interactivity: {
+                    detect_on: "window",
+                    events: {
+                        onhover: { enable: true, mode: ["grab", "repulse"] },
+                        onclick: { enable: true, mode: "push" },
+                        resize: true
+                    },
+                    modes: {
+                        grab: { distance: 50, line_linked: { opacity: 0.85 } },
+                        repulse: { distance: 260, duration: 0.45 },
+                        push: { particles_nb: 2 }
+                    }
+                },
+                retina_detect: true
+            });
+        }
+
+        if (isDarkMode) {
+            document.body.classList.add("dark-mode");
+            if (darkModeToggle) darkModeToggle.textContent = "☀️";
+        }
+
+        if (darkModeToggle) {
+            darkModeToggle.addEventListener("click", function() {
+                const isDark = document.body.classList.toggle("dark-mode");
+                localStorage.setItem("darkMode", isDark);
+                darkModeToggle.textContent = isDark ? "☀️" : "🌙";
+            });
+        }
+
+        // Initial render
+        render();
+
+        /* ===== CHATBOT FUNCTIONALITY ===== */
+
+        const capitalMap = {
+            afghanistan: "Kabul",
+            albania: "Tirana",
+            algeria: "Algiers",
+            argentina: "Buenos Aires",
+            australia: "Canberra",
+            austria: "Vienna",
+            bangladesh: "Dhaka",
+            belgium: "Brussels",
+            brazil: "Brasilia",
+            bulgaria: "Sofia",
+            cambodia: "Phnom Penh",
+            canada: "Ottawa",
+            chile: "Santiago",
+            china: "Beijing",
+            colombia: "Bogota",
+            croatia: "Zagreb",
+            cuba: "Havana",
+            czechia: "Prague",
+            "czech republic": "Prague",
+            denmark: "Copenhagen",
+            egypt: "Cairo",
+            finland: "Helsinki",
+            france: "Paris",
+            germany: "Berlin",
+            greece: "Athens",
+            hungary: "Budapest",
+            iceland: "Reykjavik",
+            india: "New Delhi",
+            indonesia: "Jakarta",
+            iran: "Tehran",
+            iraq: "Baghdad",
+            ireland: "Dublin",
+            israel: "Jerusalem",
+            italy: "Rome",
+            japan: "Tokyo",
+            kenya: "Nairobi",
+            malaysia: "Kuala Lumpur",
+            mexico: "Mexico City",
+            morocco: "Rabat",
+            nepal: "Kathmandu",
+            netherlands: "Amsterdam",
+            newzealand: "Wellington",
+            "new zealand": "Wellington",
+            nigeria: "Abuja",
+            norway: "Oslo",
+            pakistan: "Islamabad",
+            peru: "Lima",
+            philippines: "Manila",
+            poland: "Warsaw",
+            portugal: "Lisbon",
+            qatar: "Doha",
+            romania: "Bucharest",
+            russia: "Moscow",
+            saudiarabia: "Riyadh",
+            "saudi arabia": "Riyadh",
+            singapore: "Singapore",
+            southafrica: "Pretoria",
+            "south africa": "Pretoria",
+            southkorea: "Seoul",
+            "south korea": "Seoul",
+            spain: "Madrid",
+            "sri lanka": "Sri Jayawardenepura Kotte",
+            sweden: "Stockholm",
+            switzerland: "Bern",
+            thailand: "Bangkok",
+            turkey: "Ankara",
+            ukraine: "Kyiv",
+            "united arab emirates": "Abu Dhabi",
+            "united kingdom": "London",
+            "united states": "Washington, D.C.",
+            usa: "Washington, D.C.",
+            vietnam: "Hanoi"
+        };
+
+        function getCapitalResponse(message) {
+            const normalized = message.toLowerCase().replace(/[^a-z\s]/g, " ").trim();
+
+            if (!normalized.includes("capital")) {
+                return null;
+            }
+
+            for (const country in capitalMap) {
+                const needle = ` ${country} `;
+                const haystack = ` ${normalized} `;
+                if (haystack.includes(needle)) {
+                    return `The capital of ${country.replace(/\b\w/g, c => c.toUpperCase())} is ${capitalMap[country]}.`;
+                }
+            }
+
+            return "Tell me the country name and I will share the capital.";
+        }
+
+        const chatbotResponses = {
+            hello: "👋 Hey there! Welcome to Twitto. How's your day going?",
+            hi: "👋 Hey there! Welcome to Twitto. How's your day going?",
+            help: "🤝 I can help you with:\n• Posting content\n• Finding members\n• Navigation tips\n• Community guidelines\n\nWhat would you like to know?",
+            post: "📝 To create a post:\n1. Type your message in the text box at the top\n2. Click the Post button\n3. Your post will appear in the feed",
+            members: "👥 You can see all active members on the right sidebar. Green dot = online, Grey dot = offline.",
+            rules: "📋 Community Guidelines:\n• Be respectful\n• No spam or harassment\n• Keep content appropriate\n",
+            howto: "❓ What would you like help with?\n• How to post\n• Finding members\n• Reactions\n• Comments",
+            thanks: "😊 You're welcome! Feel free to ask if you need anything else.",
+            bye: "👋 See you later! Have fun on Twitto!",
+            goodbye: "👋 See you later! Have fun on Twitto!",
+            react: "😊 To react to a post:\n1. Click on ❤️ (Like) or 😂 (Laugh) buttons\n2. Your reaction appears immediately\n3. Click again to remove your reaction",
+            comment: "💬 To comment on a post:\n1. Click the comment icon\n2. Type your response\n3. Click Post to submit your comment",
+            users: "👥 This shows all registered members in the community. Green = online, Grey = offline.",
+            about: "ℹ️ Twitto is a simple social platform where you can connect with the community. Share your thoughts, react to posts, and keep the conversation real!",
+            features: "✨ Twitto Features:\n• Create posts\n• React with likes and laughs\n• Comment on posts\n• See online members\n• Dark mode support\n• Real-time interactions"
+        };
+
+        function findBestMatch(userMessage) {
+            const lowerMsg = userMessage.toLowerCase().trim();
+
+            if (chatbotResponses[lowerMsg]) {
+                return chatbotResponses[lowerMsg];
+            }
+
+            for (let key in chatbotResponses) {
+                if (lowerMsg.includes(key)) {
+                    return chatbotResponses[key];
+                }
+            }
+
+            return "🤔 I'm not sure I understood that. Try asking about:\n• How to post\n• Members\n• Reactions\n• Comments\n• Rules\n• Features";
+        }
+
+        function sendChatMessage() {
+            const input = document.getElementById('chatbot-input');
+            const message = input.value.trim();
+
+            if (!message) return;
+
+            // Add user message
+            addChatMessage(message, 'user');
+            input.value = '';
+
+            // Simulate bot typing
+            setTimeout(() => {
+                const capitalResponse = getCapitalResponse(message);
+                const response = capitalResponse || findBestMatch(message);
+                addChatMessage(response, 'bot');
+            }, 500);
+        }
+
+        function addChatMessage(message, sender) {
+            const messagesContainer = document.getElementById('chatbot-messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `chat-message ${sender}`;
+
+            const bubble = document.createElement('div');
+            bubble.className = 'chat-bubble';
+            bubble.textContent = message;
+
+            messageDiv.appendChild(bubble);
+            messagesContainer.appendChild(messageDiv);
+
+            // Auto scroll to bottom
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        function handleChatInput(event) {
+            if (event.key === 'Enter') {
+                sendChatMessage();
+            }
+        }
+
+        function toggleChatbot() {
+            const card = document.querySelector('.chatbot-card');
+            const messages = document.querySelector('.chatbot-messages');
+            const input = document.querySelector('.chatbot-input');
+
+            card.classList.toggle('visible');
+
+            if (card.classList.contains('visible')) {
+                messages.style.display = 'flex';
+                input.style.display = 'flex';
+                // Focus input when opening
+                const chatInput = document.getElementById('chatbot-input');
+                if (chatInput) chatInput.focus();
+            } else {
+                messages.style.display = 'none';
+                input.style.display = 'none';
+            }
+        }
+
+        // Initialize chatbot
+
+        console.log('Chatbot initialized');
+    </script>
+</body>
+</html>
+

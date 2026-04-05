@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="description" content="Twitto - Connect to Community! User Dashboard">
+    <title>Dashboard - Twitto</title>
+    <link rel="icon" type="image/webp" sizes="256x256" href="/Barlogo.webp?v=2" th:href="@{/Barlogo.webp(v=2)}">
+    <link rel="shortcut icon" href="/Barlogo.webp?v=2" th:href="@{/Barlogo.webp(v=2)}">
+    <link rel="apple-touch-icon" href="/Barlogo.webp?v=2" th:href="@{/Barlogo.webp(v=2)}">
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: url('/street-window.jpg') center/cover fixed no-repeat;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            color: #0f1419;
+        }
+
+        /* Twitto Text Animation */
+        @keyframes gradientShift {
+            0% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        @keyframes smoothFloat {
+            0%, 100% {
+                transform: translateY(0px);
+            }
+            50% {
+                transform: translateY(-8px);
+            }
+        }
+
+        /* NAVBAR / HEADER */
+        .navbar {
+            background-color: rgba(255, 255, 255, 0.15);
+            color: white;
+            padding: 10px 20px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .navbar .logo-branding {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .navbar .logo-img {
+            height: 60px;
+            width: auto;
+            object-fit: contain;
+            flex-shrink: 0;
+        }
+
+        .navbar .branding {
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+        }
+
+        .navbar-center {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 32px;
+            font-weight: 900;
+            color: black;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            text-shadow: none;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            white-space: nowrap;
+        }
+
+        .navbar h1 {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 0;
+            background: linear-gradient(90deg, #87CEEB, #1E90FF, #8B00FF, #FF0000, #FFFF00, #FFFFFF, #FF8C00);
+            background-size: 300% 300%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: gradientShift 6s ease infinite, smoothFloat 3s ease-in-out infinite;
+            text-shadow: none;
+        }
+
+        .logout-btn {
+            padding: 4px 12px;
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 11px;
+            min-height: 30px;
+            transition: all 0.3s ease;
+            touch-action: manipulation;
+            user-select: none;
+            -webkit-user-select: none;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-right: 10px;
+            flex-shrink: 0;
+        }
+
+        .logout-btn:hover {
+            background: linear-gradient(135deg, #c0392b, #a93226);
+            transform: translateY(-1px);
+        }
+
+        .logout-btn:active {
+            transform: translateY(0);
+        }
+
+        /* CONTAINER */
+        .container {
+            max-width: 1000px;
+            margin: auto;
+        }
+
+        /* CARD */
+        .card {
+            background: #ffffff;
+            padding: 25px;
+            margin-bottom: 25px;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: #333;
+        }
+
+        .card h3 {
+            margin-top: 0;
+            color: #333;
+            letter-spacing: 0.5px;
+        }
+
+        /* FORM */
+        input {
+            width: 100%;
+            padding: 14px;
+            margin-bottom: 16px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            background: #f9f9f9;
+            font-size: 15px;
+            color: #333;
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+        }
+
+        input::placeholder {
+            color: #888;
+        }
+
+        input:focus {
+            outline: none;
+            background: #fff;
+            border-color: #2a5298;
+            box-shadow: 0 0 8px rgba(42, 82, 152, 0.2);
+        }
+
+        /* BUTTON */
+        button {
+            padding: 12px 20px;
+            border: none;
+            background: linear-gradient(135deg, #2a5298, #1e3c72);
+            color: white;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 15px;
+            letter-spacing: 0.5px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        button:hover {
+            background: linear-gradient(135deg, #1e3c72, #14264a);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(30, 60, 114, 0.4);
+        }
+
+        /* TABLE */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #ffffff;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid #eee;
+        }
+
+        th {
+            background: rgba(42, 82, 152, 0.9);
+            color: white;
+            text-transform: uppercase;
+            font-size: 13px;
+            letter-spacing: 1px;
+            border-bottom: 1px solid #ccc;
+        }
+
+        th, td {
+            padding: 14px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        td {
+            color: #333;
+            font-size: 15px;
+        }
+
+        tr:hover td {
+            background: #f5f5f5;
+        }
+
+        /* ACTION BUTTONS */
+        .actions a {
+            text-decoration: none;
+            margin-right: 10px;
+            padding: 6px 12px;
+            color: white;
+            border-radius: 6px;
+            font-size: 13px;
+            display: inline-block;
+        }
+
+        .edit {
+            background: #3498db;
+        }
+
+        .delete {
+            background: #e74c3c;
+        }
+    </style>
+</head>
+
+<body>
+
+<header class="navbar">
+    <div class="logo-branding">
+        <img th:src="@{/barlogo.webp}" class="logo-img" alt="Twitto Logo">
+        <div class="branding">
+            <h1>✦ Twitto</h1>
+        </div>
+    </div>
+    <div class="navbar-center">DASHBOARD</div>
+    <a href="/login" style="margin: 0; text-decoration: none;">
+        <button type="button" class="logout-btn" title="Logout">
+            <span>🚪</span> Logout
+        </button>
+    </a>
+</header>
+
+<div class="container">
+
+    <!-- ADD USER -->
+    <div class="card">
+        <h3>Add User</h3>
+
+        <form action="/admin/addUser" method="post">
+            <input type="text" name="username" placeholder="Enter username" required>
+            <input type="email" name="mail" placeholder="Enter email" required>
+            <input type="password" name="password" placeholder="Enter password" required>
+            <select name="role" required style="width: 100%; padding: 14px; margin-bottom: 16px; border: 1px solid #ccc; border-radius: 10px; background: #f9f9f9; font-size: 15px; color: #333; transition: all 0.3s ease; box-sizing: border-box;">
+                <option value="USER" selected>User</option>
+                <option value="ADMIN">Admin</option>
+            </select>
+            <button>Add User</button>
+        </form>
+    </div>
+
+    <!-- USER LIST -->
+    <div class="card">
+        <h3>Users List</h3>
+
+        <table>
+            <tr>
+                <th>ID</th>
+                <th>Username</th>
+                <th>Email</th>
+                <th>Action</th>
+            </tr>
+
+            <tr th:each="u : ${users}">
+                <td th:text="${u.id}"></td>
+                <td th:text="${u.username}"></td>
+                <td th:text="${u.mail}"></td>
+
+                <td class="actions">
+                    <a class="edit"
+                       th:href="@{/admin/editUser/{id}(id=${u.id})}">
+                        Edit
+                    </a>
+
+                    <a class="delete"
+                       th:href="@{/admin/deleteUser/{id}(id=${u.id})}"
+                       onclick="return confirm('Delete this user?');">
+                        Delete
+                    </a>
+                </td>
+            </tr>
+        </table>
+
+    </div>
+
+    <div style="text-align: center; margin-top: 30px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: white; text-shadow: 1px 1px 3px rgba(0,0,0,0.8); font-size: 14px;">
+        ©2026 Twitto. All rights reserved.<br>
+        <span style="color: #87CEEB; font-size: 12px; font-weight: 500;">Developed by <a href="https://www.linkedin.com/public-profile/settings?trk=d_flagship3_profile_self_view_public_profile" target="_blank" rel="noopener noreferrer" style="color: #87CEEB; font-weight:bold; text-decoration:none;">Ashbir!</a></span>
+    </div>
+</div>
+
+</body>
+</html>

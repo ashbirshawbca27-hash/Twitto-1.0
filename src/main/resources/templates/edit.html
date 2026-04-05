@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="description" content="Twitto - Connect to Community! User Management">
+    <title>Edit User - Twitto</title>
+    <link rel="icon" type="image/webp" sizes="256x256" href="/Barlogo.webp?v=2" th:href="@{/Barlogo.webp(v=2)}">
+    <link rel="shortcut icon" href="/Barlogo.webp?v=2" th:href="@{/Barlogo.webp(v=2)}">
+    <link rel="apple-touch-icon" href="/Barlogo.webp?v=2" th:href="@{/Barlogo.webp(v=2)}">
+
+    <style>
+        body {
+            font-family: Arial;
+            background: #f4f6f9;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 400px;
+            margin: auto;
+        }
+
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            background: #2a5298;
+            color: white;
+            border: none;
+            border-radius: 6px;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+    <div class="card">
+
+        <h2>Edit User</h2>
+
+        <form action="/admin/updateUser" method="post">
+
+            <input type="hidden" name="id" th:value="${user.id}">
+
+            <label for="username">Username</label>
+            <input type="text" id="username" name="username" th:value="${user.username}" required>
+
+            <label for="mail">Email</label>
+            <input type="email" id="mail" name="mail" th:value="${user.mail}" required>
+
+            <label for="password">Password</label>
+            <input type="text" id="password" name="password" th:value="${user.password}" required>
+
+            <label for="role">Role</label>
+            <select id="role" name="role" required style="width: 100%; padding: 10px; margin-bottom: 10px;">
+                <option value="USER" th:selected="${user.role == 'USER'}">User</option>
+                <option value="ADMIN" th:selected="${user.role == 'ADMIN'}">Admin</option>
+            </select>
+
+            <button type="submit">Update</button>
+
+        </form>
+
+    </div>
+    <div style="text-align: center; margin-top: 30px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; font-size: 14px; color: #555;">
+        ©2026 Twitto. All rights reserved.<br>
+        <span style="color: #87CEEB; font-size: 12px; font-weight: 500;">Developed by <a href="https://www.linkedin.com/public-profile/settings?trk=d_flagship3_profile_self_view_public_profile" target="_blank" rel="noopener noreferrer" style="color: #87CEEB; font-weight:bold; text-decoration:none;">Ashbir!</a></span>
+    </div>
+</div>
+
+</body>
+</html>
