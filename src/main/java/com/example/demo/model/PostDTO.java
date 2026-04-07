@@ -3,6 +3,8 @@ package com.example.demo.model;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
+import java.util.List;
+
 @Data
 @AllArgsConstructor
 public class PostDTO {
@@ -13,5 +15,7 @@ public class PostDTO {
     private long timestamp;
     private int heartCount;
     private int laughCount;
+    private int commentCount;
     private String role;
+    private List<String> userReactions;
 }

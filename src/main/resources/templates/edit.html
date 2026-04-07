@@ -2,6 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Twitto - Connect to Community! User Management">
     <title>Edit User - Twitto</title>
     <link rel="icon" type="image/webp" sizes="256x256" href="/Barlogo.webp?v=2" th:href="@{/Barlogo.webp(v=2)}">
@@ -40,6 +41,22 @@
             border: none;
             border-radius: 6px;
         }
+
+        select {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+
+        @media (max-width: 600px) {
+            body {
+                padding: 12px;
+            }
+
+            .card {
+                padding: 16px;
+            }
+        }
     </style>
 </head>
 
@@ -50,7 +67,7 @@
 
         <h2>Edit User</h2>
 
-        <form action="/admin/updateUser" method="post">
+        <form action="/admin/updateUser" th:action="@{/admin/updateUser}" method="post">
 
             <input type="hidden" name="id" th:value="${user.id}">
 
@@ -64,7 +81,7 @@
             <input type="text" id="password" name="password" th:value="${user.password}" required>
 
             <label for="role">Role</label>
-            <select id="role" name="role" required style="width: 100%; padding: 10px; margin-bottom: 10px;">
+            <select id="role" name="role" required>
                 <option value="USER" th:selected="${user.role == 'USER'}">User</option>
                 <option value="ADMIN" th:selected="${user.role == 'ADMIN'}">Admin</option>
             </select>

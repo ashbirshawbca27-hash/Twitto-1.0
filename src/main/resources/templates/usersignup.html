@@ -365,6 +365,47 @@
             .form-row { grid-template-columns: 1fr; gap: 0; }
             input, select { padding: 12px 12px 12px 38px; }
         }
+
+        @media (max-width: 1024px) {
+            .container {
+                height: auto;
+                min-height: 100vh;
+                padding: 24px 16px 32px;
+                justify-content: center;
+                gap: 18px;
+                flex-direction: column;
+            }
+
+            .logo-side {
+                width: 100%;
+                text-align: center;
+            }
+
+            .logo {
+                width: min(80vw, 280px);
+            }
+
+            .card {
+                width: min(100%, 560px);
+                margin: 0;
+                padding: 24px 18px;
+            }
+
+            .card p {
+                width: auto;
+            }
+
+            .messages-row {
+                flex-direction: column;
+            }
+
+            .copyright {
+                position: static;
+                transform: none;
+                margin-top: 14px;
+                font-size: 12px;
+            }
+        }
     </style>
 </head>
 

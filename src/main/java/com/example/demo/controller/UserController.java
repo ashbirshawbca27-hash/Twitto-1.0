@@ -1,19 +1,28 @@
 package com.example.demo.controller;
 
+import com.example.demo.model.Post;
+import com.example.demo.model.PostDTO;
+import com.example.demo.model.Reaction;
+import com.example.demo.model.User;
+import com.example.demo.repository.PostRepository;
+import com.example.demo.repository.ReactionRepository;
+import com.example.demo.repository.UserRepository;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 
-import com.example.demo.model.User;
-import com.example.demo.model.PostDTO;
-import com.example.demo.repository.UserRepository;
-import com.example.demo.repository.PostRepository;
-
-import jakarta.servlet.http.HttpSession;
 import java.time.ZoneId;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Controller
+@RequestMapping("/user")
 public class UserController {
 
     @Autowired
@@ -22,139 +31,50 @@ public class UserController {
     @Autowired
     private PostRepository postRepository;
 
-    // HOME PAGE
-    @GetMapping("/")
-    public String home() {
-        return "redirect:/login";
-    }
+    @Autowired
+    private ReactionRepository reactionRepository;
 
-    // LOGIN PAGE
-    @GetMapping("/login")
-    public String loginPage() {
-        return "login";
-    }
-
-    // LOGIN
-    @PostMapping("/loginUser")
-    public String login(@RequestParam String username,
-                        @RequestParam String password,
-                        Model model,
-                        HttpSession session) {
-
-        User user = repo.findByUsername(username);
-
-        if (user == null || !user.getPassword().equals(password)) {
-            model.addAttribute("error", "Invalid credentials");
-            return "login";
-        }
-
-        // Set user as online in database
-        user.setOnline(true);
-        repo.save(user);
-
-        session.setAttribute("user", user);
-        session.setAttribute("role", user.getRole());
-
-        // Both USER and ADMIN can login through user login
-        // Route based on role if needed
-        return "redirect:/home";
-    }
-
-    // SIGNUP PAGE
-    @GetMapping("/signup")
-    public String signupPage() {
-        return "signup";
-    }
-
-    // SIGNUP
-    @PostMapping("/signup")
-    public String signup(@RequestParam String username,
-                         @RequestParam String password,
-                         @RequestParam String mail,
-                         @RequestParam String role,
-                         @RequestParam(required = false) String adminPin,  
-                         Model model) {
-
-        if (repo.findByUsername(username) != null) {
-            model.addAttribute("error", "Username already exists!");
-            return "signup";
-        }
-
-        // Validate PIN only if trying to create ADMIN account
-        if ("ADMIN".equals(role)) {
-            if (adminPin == null || adminPin.isEmpty()) {
-                model.addAttribute("error", "Admin PIN is required to create an admin account!");
-                return "signup";
-            }
-            if (!"1234".equals(adminPin)) {
-                model.addAttribute("error", "Invalid Admin PIN. Access denied!");
-                return "signup";
-            }
-        }
-
-        // Create new user account
-        User user = new User();
-        user.setUsername(username);
-        user.setPassword(password);
-        user.setMail(mail);
-        user.setRole(role);  // Set role based on user selection (USER or ADMIN)
-
-        repo.save(user);
-
-        model.addAttribute("success", "Account created successfully!");
-        return "signup";
-    }
-
-
-    // HOME PAGE (Social Feed)
     @GetMapping("/home")
-    public String homePage(HttpSession session, Model model) {
+    public String home(HttpSession session, Model model) {
         User user = (User) session.getAttribute("user");
-        
         if (user == null) {
             return "redirect:/login";
         }
 
-        // Set user as online
-        user.setOnline(true);
-        repo.save(user);
-        
-        // Convert posts to DTO for Thymeleaf serialization
-        var postsDTO = postRepository.findAllByOrderByCreatedAtDesc().stream()
-            .map(p -> new PostDTO(
-                p.getId(),
-                p.getUser().getId(),
-                p.getUser().getUsername(),
-                p.getContent(),
-                p.getCreatedAt().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli(),
-                p.getHeartCount(),
-                p.getLaughCount(),
-                p.getUser().getRole()
-            ))
-            .toList();
-        
+        List<User> users = repo.findAll();
+        List<Post> allPosts = postRepository.findAllByOrderByCreatedAtDesc();
+        List<Long> postIds = allPosts.stream().map(Post::getId).toList();
+
+        Map<Long, Set<String>> reactionsByPost = reactionRepository.findByPostIdInAndUserId(postIds, user.getId())
+                .stream()
+                .collect(Collectors.groupingBy(
+                        r -> r.getPost().getId(),
+                        Collectors.mapping(Reaction::getType, Collectors.toSet())
+                ));
+
+        List<PostDTO> posts = allPosts.stream()
+                .map(post -> toDto(post, reactionsByPost.getOrDefault(post.getId(), Collections.emptySet())))
+                .toList();
+
         model.addAttribute("user", user);
-        model.addAttribute("users", repo.findAll());
-        model.addAttribute("totalUsers", repo.findAll().size());
-        model.addAttribute("posts", postsDTO);
+        model.addAttribute("users", users);
+        model.addAttribute("totalUsers", users.size());
+        model.addAttribute("posts", posts);
         return "home_basic";
     }
 
-    // DASHBOARD
     @GetMapping("/dashboard")
     public String dashboard(HttpSession session, Model model) {
         User user = (User) session.getAttribute("user");
-        
         if (user == null) {
             return "redirect:/login";
         }
-        
+
         model.addAttribute("user", user);
         model.addAttribute("users", repo.findAll());
         return "dashboard";
     }
 
-    // LOGOUT
     @GetMapping("/logout")
     public String logout(HttpSession session) {
         User user = (User) session.getAttribute("user");
@@ -164,5 +84,21 @@ public class UserController {
         }
         session.invalidate();
         return "redirect:/login";
+    }
+
+    private PostDTO toDto(Post post, Set<String> userReactions) {
+        User author = post.getUser();
+        return new PostDTO(
+                post.getId(),
+                author == null ? null : author.getId(),
+                author == null ? "Unknown" : author.getUsername(),
+                post.getContent(),
+                post.getCreatedAt().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli(),
+                post.getHeartCount(),
+                post.getLaughCount(),
+                post.getComments() == null ? 0 : post.getComments().size(),
+                author == null ? "USER" : author.getRole(),
+                userReactions.stream().toList()
+        );
     }
 }

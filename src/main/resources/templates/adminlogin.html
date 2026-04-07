@@ -130,7 +130,7 @@
         .container {
             width: 100%;
             max-width: 420px;
-            padding-Top : 80px;
+            padding-top: 80px;
         }
 
         .card {
@@ -334,16 +334,43 @@
         }
 
         @media (max-width: 600px) {
+            body {
+                padding: 14px;
+                align-items: flex-start;
+            }
+
+            .container {
+                max-width: 100%;
+                padding-top: 0;
+                margin-top: 86px;
+            }
+
+            .logo-side {
+                top: 10px;
+                left: 10px;
+            }
+
+            .logo {
+                width: 150px;
+            }
+
             .card {
-                padding: 30px;
+                padding: 24px 18px;
             }
 
             .card h1 {
-                font-size: 28px;
+                font-size: 24px;
             }
 
             input {
                 padding: 12px 12px 12px 40px;
+            }
+
+            .copyright {
+                position: static;
+                transform: none;
+                margin-top: 14px;
+                font-size: 12px;
             }
         }
     </style>
@@ -370,7 +397,7 @@
             </div>
         </th:block>
 
-        <form action="/adminlogin" method="post">
+        <form action="/adminlogin" th:action="@{/adminlogin}" method="post">
             <div class="form-group">
                 <label for="username">Username</label>
                 <div class="input-wrapper">
@@ -395,7 +422,7 @@
         <div style="text-align:center; margin-top:15px;">
             <p style="font-size:14px;">
                 Not an Admin?
-                <a href="/login" style="color:#2a5298; font-weight:bold;">
+                <a href="/login" th:href="@{/login}" style="color:#2a5298; font-weight:bold;">
                     User Login
                 </a>
             </p>

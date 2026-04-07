@@ -586,6 +586,38 @@
             overflow: hidden;
         }
 
+        .chatbot-card.minimized {
+            display: none !important;
+        }
+
+        .chatbot-minimized-btn {
+            position: fixed;
+            bottom: max(12px, env(safe-area-inset-bottom));
+            left: max(12px, env(safe-area-inset-left));
+            width: 52px;
+            height: 52px;
+            border: none;
+            border-radius: 12px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #2a5298, #4a8eff);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+            z-index: 1200;
+            cursor: pointer;
+            padding: 0;
+        }
+
+        .chatbot-minimized-btn img {
+            width: 28px;
+            height: 28px;
+            object-fit: contain;
+        }
+
+        .chatbot-minimized-btn.visible {
+            display: inline-flex;
+        }
+
         .chatbot-card.visible {
             display: flex !important;
         }
@@ -807,6 +839,38 @@
 
         /* Small devices (phones - 320px to 480px) */
         @media (max-width: 480px) {
+            header .inner {
+                margin-left: 0;
+                gap: 10px;
+                align-items: center;
+            }
+
+            header .logo-branding {
+                gap: 10px;
+                min-width: 0;
+                flex: 1 1 auto;
+            }
+
+            header .logo-img {
+                height: 42px;
+            }
+
+            header .branding {
+                min-width: 0;
+            }
+
+            header h1 {
+                font-size: 18px;
+                line-height: 1.1;
+            }
+
+            .logout-btn {
+                margin-right: 0;
+                padding: 4px 10px;
+                font-size: 10px;
+                min-height: 28px;
+            }
+
             .container {
                 grid-template-columns: 1fr;
                 margin: 10px auto;
@@ -826,6 +890,13 @@
                 display: flex !important;
                 opacity: 1;
                 visibility: visible;
+            }
+
+            .chatbot-minimized-btn {
+                width: 48px;
+                height: 48px;
+                bottom: max(10px, env(safe-area-inset-bottom));
+                left: max(10px, env(safe-area-inset-left));
             }
 
             .chatbot-card.visible {
@@ -1210,7 +1281,7 @@
     <!-- Header -->
     <header>
         <div class="inner">
-            <a href="/" style="text-decoration: none; display: inline-flex;">
+            <a href="/" th:href="@{/}" style="text-decoration: none; display: inline-flex;">
                 <div class="logo-branding">
                     <img src="/Barlogo.webp" th:src="@{/Barlogo.webp}" class="logo-img" alt="Twitto Logo">
                     <div class="branding">
@@ -1219,7 +1290,7 @@
                     </div>
                 </div>
             </a>
-            <a href="/login" style="margin: 0; text-decoration: none;">
+            <a href="/user/logout" th:href="@{/user/logout}" style="margin: 0; text-decoration: none;">
                 <button type="button" class="logout-btn" title="Logout">
                     <span>🚪</span> Logout
                 </button>
@@ -1243,7 +1314,7 @@
             <div class="chatbot-header">
                 <img src="/Barlogo.webp" th:src="@{/Barlogo.webp}" class="chatbot-logo" alt="Twitto">
                 <h3>Twitto Assistant</h3>
-                <button class="close-btn" onclick="toggleChatbot()" title="Minimize">−</button>
+                <button class="close-btn" onclick="toggleChatbot()" title="Minimize" aria-label="Minimize assistant">−</button>
             </div>
             <div class="chatbot-messages" id="chatbot-messages">
                 <div class="chat-message bot">
@@ -1257,6 +1328,10 @@
                 <button onclick="sendChatMessage()" title="Send message">↗</button>
             </div>
         </div>
+
+        <button id="chatbot-minimized-btn" class="chatbot-minimized-btn" type="button" onclick="openChatbot()" aria-label="Open Twitto Assistant" title="Open assistant">
+            <img src="/Barlogo.webp" th:src="@{/Barlogo.webp}" alt="Assistant">
+        </button>
 
         <!-- Main Feed -->
         <main>
@@ -1330,6 +1405,9 @@
     <script th:inline="javascript">
 
         // Get user from session with safe Thymeleaf fallbacks
+        const appBase = /*[[@{/}]]*/ '/';
+        const apiUrl = (path) => appBase + String(path || '').replace(/^\//, '');
+
         const sessionUser = {
             id: /*[[${user != null ? user.id : 0}]]*/ 0,
             username: /*[[${user != null ? user.username : 'Guest'}]]*/ 'Guest',
@@ -1352,8 +1430,9 @@
                     timestamp: p.timestamp || Date.now(),
                     heartCount: p.heartCount || 0,
                     laughCount: p.laughCount || 0,
+                    commentCount: p.commentCount || 0,
                     isAdmin: p.role === 'ADMIN',
-                    userReactions: [],
+                    userReactions: Array.isArray(p.userReactions) ? p.userReactions : [],
                     replies: []
                 }));
             }
@@ -1399,7 +1478,7 @@
                 if (!content) return;
 
                 // Send post to server
-                fetch('/api/posts', {
+                fetch(apiUrl('/api/posts'), {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/x-www-form-urlencoded',
@@ -1424,6 +1503,7 @@
                             timestamp: post.timestamp || Date.now(),
                             heartCount: post.heartCount || 0,
                             laughCount: post.laughCount || 0,
+                            commentCount: 0,
                             isAdmin: (post.role || sessionUser.role) === 'ADMIN',
                             userReactions: [],
                             replies: []
@@ -1489,7 +1569,7 @@
                         <div class="reactions">
                             <button class="react-btn ${post.userReactions.includes('heart') ? 'active' : ''}" onclick="toggleReaction(${post.id}, 'heart')">❤️ ${post.heartCount > 0 ? post.heartCount : ''}</button>
                             <button class="react-btn ${post.userReactions.includes('laugh') ? 'active' : ''}" onclick="toggleReaction(${post.id}, 'laugh')">😂 ${post.laughCount > 0 ? post.laughCount : ''}</button>
-                            <button class="react-btn" onclick="toggleRepliesView(${post.id})">💬 ${post.replies.length > 0 ? post.replies.length : ''}</button>
+                            <button class="react-btn" onclick="toggleRepliesView(${post.id})">💬 ${post.commentCount > 0 ? post.commentCount : ''}</button>
                         </div>
                         <div class="replies-section" data-post-id="${post.id}" style="display: none;">
                             ${post.replies.length > 0 ? post.replies.map(reply => {
@@ -1517,20 +1597,37 @@
         }
 
         function toggleReaction(postId, type) {
-            const post = posts.find(p => p.id === postId);
-            if (!post) return;
+            fetch(apiUrl(`/api/posts/${postId}/reactions`), {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ type })
+            })
+            .then(res => {
+                if (!res.ok) {
+                    throw new Error(`HTTP error! status: ${res.status}`);
+                }
+                return res.json();
+            })
+            .then(data => {
+                if (!data.success) {
+                    alert(data.message || 'Could not update reaction');
+                    return;
+                }
 
-            const idx = post.userReactions.indexOf(type);
-            if (idx > -1) {
-                post.userReactions.splice(idx, 1);
-                if (type === 'heart') post.heartCount--;
-                else post.laughCount--;
-            } else {
-                post.userReactions.push(type);
-                if (type === 'heart') post.heartCount++;
-                else post.laughCount++;
-            }
-            render();
+                const post = posts.find(p => p.id === postId);
+                if (!post) return;
+
+                post.heartCount = data.heartCount || 0;
+                post.laughCount = data.laughCount || 0;
+                post.userReactions = Array.isArray(data.userReactions) ? data.userReactions : [];
+                render();
+            })
+            .catch(err => {
+                console.error('Error:', err);
+                alert('Error updating reaction: ' + err.message);
+            });
         }
 
         function toggleRepliesView(postId) {
@@ -1576,7 +1673,7 @@
 
         // Load comments from database
         function loadCommentsForPost(postId) {
-            return fetch(`/api/comments/post/${postId}`)
+            return fetch(apiUrl(`/api/comments/post/${postId}`))
                 .then(res => {
                     if (!res.ok) {
                         console.warn(`API returned status ${res.status} when fetching comments for post ${postId}`);
@@ -1601,6 +1698,7 @@
                             content: c.content,
                             timestamp: c.timestamp
                         }));
+                        post.commentCount = post.replies.length;
                         render();
 
                         // After render, ensure the section is still visible
@@ -1631,7 +1729,7 @@
             if (!content) return;
 
             // Send reply to server via API with JSON
-            fetch('/api/comments', {
+            fetch(apiUrl('/api/comments'), {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -1660,6 +1758,7 @@
                             content: comment.content,
                             timestamp: comment.timestamp
                         });
+                        post.commentCount = post.replies.length;
                     }
                     input.value = "";
 
@@ -1685,7 +1784,7 @@
         function deletePost(postId) {
             if (!confirm('Are you sure you want to delete this post?')) return;
 
-            fetch(`/api/posts/${postId}`, {
+            fetch(apiUrl(`/api/posts/${postId}`), {
                 method: 'DELETE'
             })
             .then(res => res.json())
@@ -1707,7 +1806,7 @@
         function deleteComment(commentId, postId) {
             if (!confirm('Are you sure you want to delete this comment?')) return;
 
-            fetch(`/api/comments/${commentId}`, {
+            fetch(apiUrl(`/api/comments/${commentId}`), {
                 method: 'DELETE'
             })
             .then(res => res.json())
@@ -1716,6 +1815,7 @@
                     const post = posts.find(p => p.id === postId);
                     if (post) {
                         post.replies = post.replies.filter(r => r.id !== commentId);
+                        post.commentCount = post.replies.length;
                         // Keep expanded state when deleting comment
                         expandedPosts.add(postId);
                         render();
@@ -1957,27 +2057,69 @@
             }
         }
 
+        function setChatbotMinimized(minimized) {
+            const card = document.getElementById('chatbot-card');
+            const launcher = document.getElementById('chatbot-minimized-btn');
+            if (!card || !launcher) return;
+
+            card.classList.toggle('minimized', minimized);
+            launcher.classList.toggle('visible', minimized);
+        }
+
         function toggleChatbot() {
-            const card = document.querySelector('.chatbot-card');
-            const messages = document.querySelector('.chatbot-messages');
-            const input = document.querySelector('.chatbot-input');
+            const card = document.getElementById('chatbot-card');
+            if (!card) return;
+            setChatbotMinimized(!card.classList.contains('minimized'));
+        }
 
-            card.classList.toggle('visible');
-
-            if (card.classList.contains('visible')) {
-                messages.style.display = 'flex';
-                input.style.display = 'flex';
-                // Focus input when opening
-                const chatInput = document.getElementById('chatbot-input');
-                if (chatInput) chatInput.focus();
-            } else {
-                messages.style.display = 'none';
-                input.style.display = 'none';
-            }
+        function openChatbot() {
+            setChatbotMinimized(false);
+            const chatInput = document.getElementById('chatbot-input');
+            if (chatInput) chatInput.focus();
         }
 
         // Initialize chatbot
 
+        function syncFeedFromServer() {
+            fetch(apiUrl('/api/posts/feed'))
+                .then(res => {
+                    if (!res.ok) {
+                        throw new Error(`HTTP error! status: ${res.status}`);
+                    }
+                    return res.json();
+                })
+                .then(serverPosts => {
+                    if (!Array.isArray(serverPosts)) return;
+
+                    const existingById = new Map(posts.map(p => [p.id, p]));
+                    posts = serverPosts.map(p => {
+                        const existing = existingById.get(p.id);
+                        return {
+                            id: p.id,
+                            userId: p.userId,
+                            author: p.username || 'Unknown',
+                            avatar: (p.username || '?').charAt(0).toUpperCase(),
+                            content: p.content || '',
+                            timestamp: p.timestamp || Date.now(),
+                            heartCount: p.heartCount || 0,
+                            laughCount: p.laughCount || 0,
+                            commentCount: p.commentCount || 0,
+                            isAdmin: p.role === 'ADMIN',
+                            userReactions: Array.isArray(p.userReactions) ? p.userReactions : [],
+                            replies: existing ? existing.replies : []
+                        };
+                    });
+
+                    render();
+                })
+                .catch(err => {
+                    console.error('Feed sync error:', err);
+                });
+        }
+
+        setInterval(syncFeedFromServer, 10000);
+
+        setChatbotMinimized(false);
         console.log('Chatbot initialized');
     </script>
 </body>

@@ -2,6 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Twitto - Connect to Community! User Dashboard">
     <title>Dashboard - Twitto</title>
     <link rel="icon" type="image/webp" sizes="256x256" href="/Barlogo.webp?v=2" th:href="@{/Barlogo.webp(v=2)}">
@@ -256,6 +257,67 @@
         .delete {
             background: #e74c3c;
         }
+
+        @media (max-width: 900px) {
+            body {
+                padding: 12px;
+            }
+
+            .navbar {
+                flex-wrap: wrap;
+                gap: 10px;
+                padding: 10px 12px;
+                align-items: center;
+            }
+
+            .navbar .logo-branding {
+                gap: 10px;
+                min-width: 0;
+                flex: 1 1 auto;
+            }
+
+            .navbar .logo-img {
+                height: 44px;
+            }
+
+            .navbar h1 {
+                font-size: 20px;
+                line-height: 1.1;
+            }
+
+            .navbar-center {
+                position: static;
+                transform: none;
+                width: 100%;
+                text-align: center;
+                order: 3;
+                font-size: 24px;
+                letter-spacing: 2px;
+                margin-top: 2px;
+            }
+
+            .logout-btn {
+                margin-right: 0;
+                min-height: 28px;
+                font-size: 10px;
+                padding: 4px 10px;
+            }
+
+            .card {
+                padding: 16px;
+            }
+
+            .actions a {
+                margin-right: 6px;
+                margin-bottom: 6px;
+            }
+
+            table {
+                display: block;
+                overflow-x: auto;
+                white-space: nowrap;
+            }
+        }
     </style>
 </head>
 
@@ -269,7 +331,7 @@
         </div>
     </div>
     <div class="navbar-center">DASHBOARD</div>
-    <a href="/login" style="margin: 0; text-decoration: none;">
+    <a href="/user/logout" th:href="@{/user/logout}" style="margin: 0; text-decoration: none;">
         <button type="button" class="logout-btn" title="Logout">
             <span>🚪</span> Logout
         </button>
@@ -282,7 +344,7 @@
     <div class="card">
         <h3>Add User</h3>
 
-        <form action="/admin/addUser" method="post">
+        <form action="/admin/addUser" th:action="@{/admin/addUser}" method="post">
             <input type="text" name="username" placeholder="Enter username" required>
             <input type="email" name="mail" placeholder="Enter email" required>
             <input type="password" name="password" placeholder="Enter password" required>
